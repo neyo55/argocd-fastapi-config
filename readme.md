@@ -217,4 +217,77 @@ Visit `http://localhost:8000` in your browser!
 * **Cause:** An invisible trailing space was accidentally typed in the Namespace field of the ArgoCD UI.
 * **Fix:** Edit the app details in ArgoCD, remove the space so it says exactly `default`, and re-sync.
 
+---
+## Phase 6: Production Routing with Ingress (The Windows Workaround)
+
+Relying on `kubectl port-forward` directly to a service is fragile; if a pod dies and restarts during an update, the tunnel collapses. In a production environment, we use an **Ingress** to permanently route traffic. 
+
+
+
+Because Docker Desktop on Windows isolates network IPs, the standard `minikube tunnel` command often fails to bind to port 80. Here is how we built a production-grade Ingress and successfully bypassed the Windows network restrictions.
+
+### 1. Enable the Ingress Controller
+Minikube comes with an NGINX Ingress controller, but it must be enabled:
+```bash
+minikube addons enable ingress
+````
+
+*Verify it is running: `kubectl get pods -n ingress-nginx`*
+
+### 2\. Create the `ingress.yaml` Manifest
+
+We created a new file in our Git repository to tell the NGINX controller how to route our traffic:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fastapi-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: fastapi.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: fastapi-service
+            port:
+              number: 80
+```
+
+*We pushed this file to GitHub, and ArgoCD automatically deployed it to the cluster.*
+
+### 3\. The Windows DNS Hack (`hosts` file)
+
+We needed to tell Windows that `fastapi.local` belongs to our local machine.
+
+1.  Open **Notepad** as an Administrator.
+2.  Open the file: `C:\Windows\System32\drivers\etc\hosts`
+3.  Add this line to the very bottom:
+    ```text
+    127.0.0.1    fastapi.local
+    ```
+4.  Save and close.
+
+### 4\. The Port-Forward Bridge (The Workaround)
+
+To bypass Windows blocking port 80, we forwarded the *entire NGINX Ingress Controller* to a custom port (`8888`) on our localhost.
+
+Open a dedicated PowerShell terminal and leave this running:
+
+```bash
+kubectl port-forward -n ingress-nginx service/ingress-nginx-controller 8888:80
+```
+
+### 5\. Access the Production URL
+
+With the bridge open, we can now access the app via a clean domain name.
+Open a browser and visit:
+**`http://fastapi.local:8888`**
+
+
 
