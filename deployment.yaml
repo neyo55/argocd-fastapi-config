@@ -5,7 +5,7 @@ metadata:
   labels:
     app: fastapi
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: fastapi
@@ -17,6 +17,7 @@ spec:
       containers:
       - name: fastapi-container
         # IMPORTANT: Change this to your actual Docker Hub username!
-        image: neyo55/fastapi-app:v1
+        # Change the v1 to v2 here: as we are rolling out v2 of our app with the new Ingress configuration
+        image: neyo55/fastapi-app:v2
         ports:
         - containerPort: 8000
