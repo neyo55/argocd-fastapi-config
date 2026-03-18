@@ -133,7 +133,7 @@ spec:
 ```bash
 minikube start
 ```
-![Insert Kubectl running in terminal Screenshot Here](/argocd-fastapi-config/screenshot/terminal.JPG)
+![Insert Kubectl running in terminal Screenshot Here](/screenshot/terminal.JPG)
 
 ### 2. Install ArgoCD
 ```bash
@@ -166,7 +166,7 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 ```
 *Open `https://localhost:8080` in your browser. Log in with username `admin` and the password from the previous step.*
 
-![Insert ArgoCD Login Screenshot Here](/argocd-fastapi-config/screenshot/Argocd%20login%20page.JPG)
+![Insert ArgoCD Login Screenshot Here](/screenshot/Argocd%20login%20page.JPG)
 
 ---
 
@@ -183,7 +183,7 @@ In the ArgoCD UI, click **+ New App** and configure:
 
 Click **Create**. ArgoCD will instantly sync your Git repo with your cluster.
 
-![Insert ArgoCD Dashboard Screenshot Here](/argocd-fastapi-config/screenshot/Argocd%20dashboard.JPG)
+![Insert ArgoCD Dashboard Screenshot Here](/screenshot/Argocd%20dashboard.JPG)
 
 ---
 
@@ -203,7 +203,7 @@ Visit `http://localhost:8000` in your browser!
 
 2. **Git as the Source of Truth:** Edit `deployment.yaml` in GitHub to change `replicas: 2` to `replicas: 4`. Commit the change. Watch ArgoCD automatically spin up two additional pods without touching the terminal!
 
-![Insert ArgoCD Replica Increase Screenshot Here](/argocd-fastapi-config/screenshot/4%20replicas.JPG)
+![Insert ArgoCD Replica Increase Screenshot Here](/screenshot/4%20replicas.JPG)
 
 ---
 
