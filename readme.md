@@ -1,16 +1,19 @@
----
 
-```markdown
+---
 # Zero to GitOps: Deploying a FastAPI App with ArgoCD on Kubernetes
 
 This repository documents my journey of building a local GitOps pipeline from scratch. It is designed as a step-by-step guide for beginners to understand how to containerize an application, deploy it to a local Kubernetes cluster, and manage it using ArgoCD.
 
-## 🛠️ Prerequisites
+---
+
+## Prerequisites
 Before starting, ensure you have the following installed on your machine (this guide uses Windows PowerShell):
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Running)
+* **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** (Must be running)
 * [Minikube](https://minikube.sigs.k8s.io/docs/start/)
 * [kubectl](https://kubernetes.io/docs/tasks/tools/)
 * [Git](https://git-scm.com/)
+* [Python 3.x](https://www.python.org/downloads/)
+* **A Code Editor** (like [VS Code](https://code.visualstudio.com/))
 * Accounts on [GitHub](https://github.com/) and [Docker Hub](https://hub.docker.com/)
 
 ---
@@ -130,7 +133,7 @@ spec:
 ```bash
 minikube start
 ```
-![Insert Kubectl running in terminal Screenshot Here](/screenshot/terminal.JPG)
+![Insert Kubectl running in terminal Screenshot Here](/argocd-fastapi-config/screenshot/terminal.JPG)
 
 ### 2. Install ArgoCD
 ```bash
@@ -163,7 +166,7 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 ```
 *Open `https://localhost:8080` in your browser. Log in with username `admin` and the password from the previous step.*
 
-![Insert ArgoCD Login Screenshot Here](/screenshot/Argocd%20login%20page.JPG)
+![Insert ArgoCD Login Screenshot Here](/argocd-fastapi-config/screenshot/Argocd%20login%20page.JPG)
 
 ---
 
@@ -180,7 +183,7 @@ In the ArgoCD UI, click **+ New App** and configure:
 
 Click **Create**. ArgoCD will instantly sync your Git repo with your cluster.
 
-![Insert ArgoCD Dashboard Screenshot Here](/screenshot/Argocd%20dashboard.JPG)
+![Insert ArgoCD Dashboard Screenshot Here](/argocd-fastapi-config/screenshot/Argocd%20dashboard.JPG)
 
 ---
 
@@ -200,11 +203,11 @@ Visit `http://localhost:8000` in your browser!
 
 2. **Git as the Source of Truth:** Edit `deployment.yaml` in GitHub to change `replicas: 2` to `replicas: 4`. Commit the change. Watch ArgoCD automatically spin up two additional pods without touching the terminal!
 
-![Insert ArgoCD Replica Increase Screenshot Here](/screenshot/4%20replicas.JPG)
+![Insert ArgoCD Replica Increase Screenshot Here](/argocd-fastapi-config/screenshot/4%20replicas.JPG)
 
 ---
 
-## 🛑 Common Troubleshooting (Lessons Learned)
+## Common Troubleshooting (Lessons Learned)
 
 **Error:** `transport: Error while dialing: dial tcp 10.111.16.119:8081: connect: connection refused`
 * **Cause:** The `argocd-repo-server` pod crashed or failed to wake up after a machine sleep.
