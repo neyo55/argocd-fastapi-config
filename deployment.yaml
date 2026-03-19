@@ -18,7 +18,7 @@ spec:
       - name: fastapi-container
         # IMPORTANT: Change this to your actual Docker Hub username!
         # Change the v1 to v3 here: as we are rolling out v3 of our app with configmaps and secrets
-        image: neyo55/fastapi-app:v3
+        image: neyo55/fastapi-app:a00bf57
         ports:
         - containerPort: 8000
         env:
