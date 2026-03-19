@@ -17,7 +17,19 @@ spec:
       containers:
       - name: fastapi-container
         # IMPORTANT: Change this to your actual Docker Hub username!
-        # Change the v1 to v2 here: as we are rolling out v2 of our app with the new Ingress configuration
-        image: neyo55/fastapi-app:v2
+        # Change the v1 to v3 here: as we are rolling out v3 of our app with configmaps and secrets
+        image: neyo55/fastapi-app:v3
         ports:
         - containerPort: 8000
+        env:
+        - name: APP_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: fastapi-config
+              key: APP_ENVIRONMENT
+        - name: SECRET_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: fastapi-secret
+              key: SECRET_API_KEY
+
