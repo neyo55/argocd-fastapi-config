@@ -289,5 +289,105 @@ With the bridge open, we can now access the app via a clean domain name.
 Open a browser and visit:
 **`http://fastapi.local:8888`**
 
+---
+## Phase 7: Decoupling Configuration from Code (ConfigMaps & Secrets)
 
+Hardcoding environment variables (like "Staging" or "Production") or sensitive data (like API keys and Database Passwords) directly into application code is a major security risk. In this phase, we updated the app to dynamically read these values using Kubernetes `ConfigMaps` and `Secrets`.
+
+### 1. Update the Application (Version 3)
+We updated our FastAPI `main.py` to pull variables from the system environment using Python's `os` module:
+
+```python
+from fastapi import FastAPI
+import os
+import socket
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    hostname = socket.gethostname()
+    
+    # Grab the variables from the Kubernetes environment
+    environment = os.getenv("APP_ENVIRONMENT", "Unknown Environment")
+    api_key = os.getenv("SECRET_API_KEY", "No Key Provided")
+
+    return {
+        "message": "Hello from FastAPI!",
+        "version": "3.0 - The Config & Secrets Update",
+        "pod_name": hostname,
+        "environment": environment,
+        "api_key_status": api_key, 
+        "status": "Unkillable App is Running"
+    }
+````
+
+*Built and pushed to Docker Hub as `<your-dockerhub-username>/fastapi-app:v3`.*
+
+### 2\. Create the Configuration Manifests
+
+We created two new files in our Git repository to hold our variables.
+
+**`configmap.yaml`** (For plain-text, non-sensitive data)
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fastapi-config
+data:
+  APP_ENVIRONMENT: "Production-GitOps"
+```
+
+**`secret.yaml`** (For sensitive data, encoded in Base64)
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: fastapi-secret
+type: Opaque
+data:
+  # Base64 encoded string for "my-super-secret-key"
+  SECRET_API_KEY: "bXktc3VwZXItc2VjcmV0LWtleQ=="
+```
+
+### 3\. Inject Variables into the Deployment
+
+We updated our `deployment.yaml` to change the image tag to `v3` and map the ConfigMap and Secret into the container's environment:
+
+```yaml
+      containers:
+      - name: fastapi-container
+        image: <your-dockerhub-username>/fastapi-app:v3
+        ports:
+        - containerPort: 8000
+        env:
+        - name: APP_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: fastapi-config
+              key: APP_ENVIRONMENT
+        - name: SECRET_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: fastapi-secret
+              key: SECRET_API_KEY
+```
+
+Once pushed to GitHub, ArgoCD automatically synced the new manifests, injected the variables, and performed a rolling update to Version 3.
+
+-----
+
+### The GitOps "Secret Paradox" (Important Security Note)
+
+While the setup above demonstrates how Kubernetes handles ConfigMaps and Secrets natively, **it exposes a massive security flaw in a GitOps workflow.**
+
+Kubernetes Secrets are merely Base64 *encoded*, not encrypted. Anyone with access to this Git repository can easily decode `bXktc3VwZXItc2VjcmV0LWtleQ==` back into plain text.
+
+**Real-World Production Solution:**
+In a true production environment, you **never** commit raw `Secret` manifests to Git. Instead, DevOps engineers use tools like:
+
+1.  **Sealed Secrets (Bitnami):** Asymmetrically encrypts the secret on the developer's laptop before committing to Git. A controller inside the cluster decrypts it.
+2.  **External Secrets Operator:** Integrates with enterprise vaults (like `AWS Secrets Manager or HashiCorp Vault`) to fetch secrets dynamically at runtime, keeping them completely out of version control.
 
